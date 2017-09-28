@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/locale/pt-br.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/locale-all.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.css">
+    <link media="print" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css">
+
+<script src="http://cdn.peerjs.com/0.3/peer.js"></script>
+
+    <script>
+
+var eventos = [
+  {
+    "id": 999,
+    "title": "A",
+    "start": "2017-09-28T16:00:00"
+  },
+  {
+    "title": "B",
+    "start": "2017-09-28",
+    "id": 1001
+  }
+];
+
+var peer = new Peer('moderador', {host: 'localhost', port: 9000, path: '/'});
+
+
+peer.on('connection', function(conn) {
+
+
+  conn.on('open', function(){
+    conn.send(eventos);
+  });
+
+
+
+
+  conn.on('data', function(data){
+    // Let's check if the browser supports notifications
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notification");
+    }
+
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+      // If it's okay let's create a notification
+      var notification = new Notification("Novo evento aguardando moderação.");
+    }
+
+    // Otherwise, we need to ask the user for permission
+    else if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function (permission) {
+        // If the user accepts, let's create a notification
+        if (permission === "granted") {
+          var notification = new Notification("Novo evento aguardando moderação.");
+        }
+      });
+    }
+
+    // At last, if the user has denied notifications, and you
+    // want to be respectful there is no need to bother them any more.
+
+
+    var li = $('<li>' + data.title + ' - ' + data.start + '</li>');
+    $('ul').append(li.append('&nbsp;').append($('<button>Aprovar</button>').click(function() {
+        eventos.push({title: data.title, start: data.start});
+        li.remove();
+    })));
+  });
+});
+
+</script>
+
+
+</head>
+<body>
+  <ul></ul>
+</body>
+</html>
